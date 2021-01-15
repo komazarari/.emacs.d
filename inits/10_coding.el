@@ -45,3 +45,12 @@
 ;; Docker
 (use-package dockerfile-mode
   :ensure t)
+
+;; terraform
+(use-package company-terraform
+  :ensure t
+  :config
+  (company-terraform-init)
+  :hook
+  (terraform-mode . terraform-format-on-save-mode)
+  )

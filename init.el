@@ -10,8 +10,8 @@
       '(("gnu" . "https://elpa.gnu.org/packages/")
 	("melpa" . "https://melpa.org/packages/")
 	("org" . "https://orgmode.org/elpa/")
-	("marmalade" . "http://marmalade-repo.org/packages/"))
-	)
+	;; ("marmalade" . "http://marmalade-repo.org/packages/")
+    ))
 
 (unless package-archive-contents
   (package-refresh-contents))
