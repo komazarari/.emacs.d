@@ -32,6 +32,7 @@
         ))
 
 (use-package helm-ghq
+  :ensure t
   :config
   (when (executable-find "ghq")
     (setq helm-for-files-preferred-list

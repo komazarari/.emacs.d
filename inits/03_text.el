@@ -2,6 +2,7 @@
 ;; from http://emacs.rubikitch.com/google-translate/
 
 (use-package google-translate
+  :ensure t
   :config
   (defvar google-translate-english-chars "[:ascii:]’“”–"
   "これらの文字が含まれているときは英語とみなす")

@@ -11,9 +11,14 @@
   ;(add-hook 'before-save-hook 'gofmt-before-save)
   )
 (use-package company-go
+  :ensure t
   )
 (use-package go-eldoc
+  :ensure t
   )
+
+;; Javascript
+(setq js-indent-level 2)
 
 ;; LSP
 (use-package lsp-mode
@@ -38,6 +43,7 @@
 
 
 (use-package groovy-mode
+  :ensure t
   :config
   (setq groovy-indent-offset 2)
   )
