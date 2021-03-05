@@ -1,15 +1,37 @@
+;;; fish
+(use-package fish-mode
+  :ensure t)
+
+;;; flycheck
+(use-package flycheck
+  :ensure t
+  :hook
+  (js-mode . global-flycheck-mode)
+  (js2-mode . global-flycheck-mode)
+  ;; :config
+  ;; (custom-set-variables)
+  )
+
+;; C
+;;; Enable helm-gtags-mode
+(custom-set-variables
+ ;; '(helm-gtags-prefix-key "\C-t")
+ '(helm-gtags-suggested-key-mapping t))
+
+(add-hook 'c-mode-hook 'helm-gtags-mode)
+
 ;; Go
 (defun lsp-go-install-save-hooks()
   (add-hook 'before-save-hook #'lsp-format-buffer t t)
   (add-hook 'before-save-hook #'lsp-organaize-imports t t)
   )
 
-(use-package go-mode
-  :bind (("M-." . godef-jump)
-         )
-  :config
-  ;(add-hook 'before-save-hook 'gofmt-before-save)
-  )
+;; (use-package go-mode
+;;   :bind (("M-." . godef-jump)
+;;          )
+;;   :config
+;;   ;(add-hook 'before-save-hook 'gofmt-before-save)
+;;   )
 (use-package company-go
   :ensure t
   )
@@ -19,6 +41,15 @@
 
 ;; Javascript
 (setq js-indent-level 2)
+(use-package add-node-modules-path
+  :ensure t
+  :hook
+  (js-mode . add-node-modules-path)
+  (js2-mode . add-node-modules-path)
+  )
+
+(use-package typescript-mode
+  :ensure t)
 
 ;; LSP
 (use-package lsp-mode
