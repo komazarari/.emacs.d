@@ -114,3 +114,7 @@
 (global-display-line-numbers-mode)
 (setq-default indicate-empty-lines t)
 (setq-default indicate-buffer-boundaries 'left)
+
+;; hs-mode
+(define-key global-map (kbd "C-{") 'hs-hide-block)
+(define-key global-map (kbd "C-}") 'hs-show-block)
