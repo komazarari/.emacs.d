@@ -94,3 +94,7 @@
   :hook
   (terraform-mode . terraform-format-on-save-mode)
   )
+
+;;; jsonnet
+(use-package jsonnet-mode
+  :ensure t)
