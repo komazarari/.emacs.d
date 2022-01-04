@@ -159,7 +159,7 @@
 ;        try-complete-lisp-symbol-partially ; Emacs lisp シンボル
 ;        try-complete-lisp-symbol           ; Emacs lisp シンボル all
         ))
-    
+
 ;; Backup file
 (setq make-backup-files t)
 (setq backup-directory-alist
@@ -189,6 +189,8 @@
 ;; ;; Mac の Cmd は meta key として使う
 ;; (when (eq system-type 'darwin)
 ;;   (setq ns-command-modifier (quote meta)))
+
+(use-package mykie  :ensure t)
 
 ;; hs-minor-mode
 (leaf hs-minor-mode
@@ -284,7 +286,14 @@
     :url "https://github.com/abo-abo/swiper"
     :emacs>= 24.5
     :ensure t
-    :bind (("C-s" . swiper)))
+   ;; :bind (("C-s" . swiper))
+    :config
+    (mykie:global-set-key "C-s"
+      :default    isearch-forward
+      :C-u!       swiper
+      )
+    )
+
   (leaf counsel
     :doc "Various completion functions using Ivy"
     :req "emacs-24.5" "swiper-0.13.0"
@@ -309,7 +318,7 @@
   :ensure t
   :custom ((prescient-aggressive-file-save . t))
   :global-minor-mode prescient-persist-mode)
-  
+
 (leaf ivy-prescient
   :doc "prescient.el + Ivy"
   :req "emacs-25.1" "prescient-4.0" "ivy-0.11.0"
@@ -352,7 +361,7 @@
           ("C-n" . company-select-next)
           ("C-p" . company-select-previous)))
   :custom ((company-idle-delay . 0)
-           (company-minimum-prefix-length . 1)
+           (company-minimum-prefix-length . 2)
            (company-transformers . '(company-sort-by-occurrence)))
   :global-minor-mode global-company-mode)
 
@@ -452,6 +461,139 @@
   (prog-mode . rainbow-delimiters-mode)
   (emacs-lisp-mode . rainbow-delimiters-mode)
 )
+
+(use-package ace-jump-mode
+  :ensure t
+  :config
+  (setq ace-jump-mode-gray-background nil)
+  (setq ace-jump-word-mode-use-query-char nil)
+  (setq ace-jump-mode-move-keys
+;        (append "asdfghjkl;wertyuio" nil))
+        (append "azwsxedcrfvtgyhnujikol;p[]0/" nil))
+  (mykie:global-set-key "C-o"
+    :default    ace-jump-word-mode
+    :C-u!       ace-jump-line-mode
+    :C-u*2!     ace-jump-char-mode
+    )
+  )
+
+;; 現在位置からいい感じに region 選択
+(use-package expand-region
+  :ensure t
+  :config
+  (global-set-key (kbd "C-=") 'er/expand-region)
+  (global-set-key (kbd "C-M-=") 'er/contract-region)
+  )
+
+;; カーソル分身周り
+(use-package multiple-cursors
+  :ensure t
+  :config
+  (multiple-cursors-mode)
+  )
+(use-package region-bindings-mode
+  :ensure t
+  :config
+  (region-bindings-mode-enable)
+  :bind (:map region-bindings-mode-map
+              ("a" . 'mc/mark-all-like-this)
+              ("p" . 'mc/mark-previous-lines)
+              ("n" . 'mc/mark-next-lines)
+              ("P" . 'mc/mark-previous-like-this)
+              ("N" . 'mc/mark-next-like-this)
+              ("s" . 'mc/skip-to-next-like-this)
+              ("S" . 'mc/skip-to-previous-like-this)
+              ("m" . 'mc/mark-more-like-this-extended)
+              ("q" . 'query-replace-regexp)
+              )
+  )
+
+;; C-a, C-e で先頭, 末尾
+(use-package sequential-command
+  :ensure t
+  :config
+  (require 'sequential-command-config)
+  (sequential-command-setup-keys)
+  )
+
+;; 繰り返しを快適に
+(use-package smartrep :ensure t)
+(smartrep-define-key global-map "C-x"
+  '(("o" . other-window)
+    ("0" . delete-window)
+    ("1" . delete-other-windows)
+    ("2" . split-window-below)
+    ("3" . split-window-right)
+    ("{" . shrink-window-horizontally)
+    ("}" . enlarge-window-horizontally)
+    ("+" . balance-windows)
+    ("^" . enlarge-window)
+    ("-" . shrink-window)))
+
+
+(use-package comment-dwim-2
+  :ensure t
+  :config
+  (global-set-key (kbd "M-;") 'comment-dwim-2)
+  )
+
+;; 空白とかを可視化
+(use-package whitespace
+  :ensure t
+  :config
+  (setq whitespace-style '(
+                           face           ; faceで可視化
+                           trailing       ; 末尾
+                           tabs           ; タブ
+                           space
+                           empty          ; 先頭/末尾の空行
+                           space-mark     ; 表示のマッピング
+                           tab-mark
+                           ))
+                                        ; from http://cloverrose.hateblo.jp/entry/2013/04/12/041758
+  (setq whitespace-display-mappings
+        '(
+          ;; (space-mark   ?\     [?\u00B7]     [?.]) ; space - centered dot
+          (space-mark   ?\xA0  [?\u00A4]     [?_]) ; hard space - currency
+          (space-mark   ?\x8A0 [?\x8A4]      [?_]) ; hard space - currency
+          (space-mark   ?\x920 [?\x924]      [?_]) ; hard space - currency
+          (space-mark   ?\xE20 [?\xE24]      [?_]) ; hard space - currency
+          (space-mark   ?\xF20 [?\xF24]      [?_]) ; hard space - currency
+          (space-mark ?\u3000 [?\u25a1] [?_ ?_]) ; full-width-space - square
+          ;; NEWLINE is displayed using the face `whitespace-newline'
+          ;; (newline-mark ?\n    [?$ ?\n])  ; eol - dollar sign
+          ;; (newline-mark ?\n    [?\u21B5 ?\n] [?$ ?\n])	; eol - downwards arrow
+          ;; (newline-mark ?\n    [?\u00B6 ?\n] [?$ ?\n])	; eol - pilcrow
+          ;; (newline-mark ?\n    [?\x8AF ?\n]  [?$ ?\n])	; eol - overscore
+          ;; (newline-mark ?\n    [?\x8AC ?\n]  [?$ ?\n])	; eol - negation
+          ;; (newline-mark ?\n    [?\x8B0 ?\n]  [?$ ?\n])	; eol - grade
+          ;;
+          ;; WARNING: the mapping below has a problem.
+          ;; When a TAB occupies exactly one column, it will display the
+          ;; character ?\xBB at that column followed by a TAB which goes to
+          ;; the next TAB column.
+          ;; If this is a problem for you, please, comment the line below.
+          (tab-mark     ?\t    [?\u00BB ?\t] [?\\ ?\t]) ; tab - left quote mark
+          ))
+  (defvar my/bg-color "#232323")
+  (set-face-attribute 'whitespace-trailing nil
+                      :background my/bg-color
+                      :foreground "DeepPink"
+                      :underline t)
+  (set-face-attribute 'whitespace-tab nil
+                      :background my/bg-color
+                      :foreground "LightSkyBlue"
+                      :underline t)
+  (set-face-attribute 'whitespace-space nil
+                      :background my/bg-color
+                      :foreground "GreenYellow"
+                      :weight 'bold)
+  (set-face-attribute 'whitespace-empty nil
+                      :background my/bg-color)
+  (setq whitespace-action '(auto-cleanup))
+  (global-whitespace-mode 1)
+  )
+
 
 (provide 'init)
 ;;; init.el ends here
