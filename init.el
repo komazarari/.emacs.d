@@ -89,7 +89,7 @@
             (mouse-wheel-scroll-amount . '(1 ((control) . 5)))
             (ring-bell-function . 'ignore)
             (text-quoting-style . 'straight)
-            (truncate-lines . t)
+            ;; (truncate-lines . t)
             ;; (use-dialog-box . nil)
             ;; (use-file-dialog . nil)
             ;; (menu-bar-mode . t)
@@ -368,6 +368,16 @@
   (setq completion-styles '(orderless)
         completion-category-defaults nil
         completion-category-overrides '((file (styles partial-completion)))))
+
+(leaf marginalia
+  :ensure t
+  :init (marginalia-mode)
+  :bind (("M-A" . marginalia-cycle)
+         (minibuffer-local-map
+          ("M-A" . marginalia-cycle)
+          )
+         )
+  )
 
 (leaf consult
   :ensure t
