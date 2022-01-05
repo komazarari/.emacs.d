@@ -20,6 +20,9 @@
 ;; You may delete these explanatory comments.
 ; (package-initialize)
 
+;; (require 'cl) を見逃す
+(setq byte-compile-warnings '(not cl-functions obsolete))
+
 (eval-when-compile
   (customize-set-variable
    'package-archives '(("melpa" . "https://melpa.org/packages/")
@@ -121,7 +124,7 @@
   ;; モードラインに時刻を表示する
   (display-time)
   ;; ido
-  (ido-mode 1)
+  ;; (ido-mode 1)
 
   ;; 行番号とか
   (global-display-line-numbers-mode)
@@ -261,74 +264,187 @@
             (version-control . t)
             (delete-old-versions . t)))
 
+(leaf recentf
+  :custom
+  (recentf-max-saved-items . 200)
+  (recentf-exclude . '("/recentf" "COMMIT_EDITMSG" "/.?TAGS" "^/sudo:" "/\\.emacs\\.d/games/*-scores" "/\\.emacs\\.d/\\.cask/"))
+  :config
+  (setq recentf-auto-save-timer (run-with-idle-timer 30 t 'recentf-save-list))
+  :global-minor-mode recentf-mode
+  )
+
 (leaf startup
   :doc "process Emacs shell arguments"
   :tag "builtin" "internal"
   :custom `((auto-save-list-file-prefix . ,(locate-user-emacs-file "backup/.saves-"))))
 
-(leaf ivy
-  :doc "Incremental Vertical completYon"
-  :req "emacs-24.5"
-  :tag "matching" "emacs>=24.5"
-  :url "https://github.com/abo-abo/swiper"
-  :emacs>= 24.5
-  :ensure t
-;  :blackout t
-  :leaf-defer nil
-  :custom ((ivy-initial-inputs-alist . nil)
-           (ivy-use-selectable-prompt . t))
-  :global-minor-mode t
-  :config
-  (leaf swiper
-    :doc "Isearch with an overview. Oh, man!"
-    :req "emacs-24.5" "ivy-0.13.0"
-    :tag "matching" "emacs>=24.5"
-    :url "https://github.com/abo-abo/swiper"
-    :emacs>= 24.5
-    :ensure t
-   ;; :bind (("C-s" . swiper))
-    :config
-    (mykie:global-set-key "C-s"
-      :default    isearch-forward
-      :C-u!       swiper
-      )
-    )
+;; (leaf ivy
+;;   :doc "Incremental Vertical completYon"
+;;   :req "emacs-24.5"
+;;   :tag "matching" "emacs>=24.5"
+;;   :url "https://github.com/abo-abo/swiper"
+;;   :emacs>= 24.5
+;;   :ensure t
+;; ;  :blackout t
+;;   :leaf-defer nil
+;;   :custom ((ivy-initial-inputs-alist . nil)
+;;            (ivy-use-selectable-prompt . t))
+;;   :global-minor-mode t
+;;   :config
+;;   (leaf swiper
+;;     :doc "Isearch with an overview. Oh, man!"
+;;     :req "emacs-24.5" "ivy-0.13.0"
+;;     :tag "matching" "emacs>=24.5"
+;;     :url "https://github.com/abo-abo/swiper"
+;;     :emacs>= 24.5
+;;     :ensure t
+;;    ;; :bind (("C-s" . swiper))
+;;     :config
+;;     (mykie:global-set-key "C-s"
+;;       :default    isearch-forward
+;;       :C-u!       swiper
+;;       )
+;;     )
 
-  (leaf counsel
-    :doc "Various completion functions using Ivy"
-    :req "emacs-24.5" "swiper-0.13.0"
-    :tag "tools" "matching" "convenience" "emacs>=24.5"
-    :url "https://github.com/abo-abo/swiper"
-    :emacs>= 24.5
-    :ensure t
- ;   :blackout t
-    :bind (("C-S-s" . counsel-imenu)
-           ("C-x C-r" . counsel-recentf))
-    :custom `((counsel-yank-pop-separator . "\n----------\n")
-              (counsel-find-file-ignore-regexp . ,(rx-to-string '(or "./" "../") 'no-group)))
-    :global-minor-mode t)
+;;   (leaf counsel
+;;     :doc "Various completion functions using Ivy"
+;;     :req "emacs-24.5" "swiper-0.13.0"
+;;     :tag "tools" "matching" "convenience" "emacs>=24.5"
+;;     :url "https://github.com/abo-abo/swiper"
+;;     :emacs>= 24.5
+;;     :ensure t
+;;  ;   :blackout t
+;;     :bind (("C-S-s" . counsel-imenu)
+;;            ("C-x C-r" . counsel-recentf))
+;;     :custom `((counsel-yank-pop-separator . "\n----------\n")
+;;               (counsel-find-file-ignore-regexp . ,(rx-to-string '(or "./" "../") 'no-group)))
+;;     :global-minor-mode t)
+;;   )
+
+;; (leaf prescient
+;;   :doc "Better sorting and filtering"
+;;   :req "emacs-25.1"
+;;   :tag "extensions" "emacs>=25.1"
+;;   :url "https://github.com/raxod502/prescient.el"
+;;   :emacs>= 25.1
+;;   :ensure t
+;;   :custom ((prescient-aggressive-file-save . t))
+;;   :global-minor-mode prescient-persist-mode)
+
+;; (leaf ivy-prescient
+;;   :doc "prescient.el + Ivy"
+;;   :req "emacs-25.1" "prescient-4.0" "ivy-0.11.0"
+;;   :tag "extensions" "emacs>=25.1"
+;;   :url "https://github.com/raxod502/prescient.el"
+;;   :emacs>= 25.1
+;;   :ensure t
+;;   :after prescient ivy
+;;   :custom ((ivy-prescient-retain-classic-highlighting . t))
+;;   :global-minor-mode t)
+
+;; minibuffer 拡げるやつ
+(leaf vertico
+  :ensure t
+  :init
+  (vertico-mode)
+  :custom
+  (vertico-count . 20)
+  (vertico-resize . t)
+  (vertico-cycle . t) ;; 繰り返すか
   )
 
-(leaf prescient
-  :doc "Better sorting and filtering"
-  :req "emacs-25.1"
-  :tag "extensions" "emacs>=25.1"
-  :url "https://github.com/raxod502/prescient.el"
-  :emacs>= 25.1
+;; Optionally use the `orderless' completion style. See
+;; `+orderless-dispatch' in the Consult wiki for an advanced Orderless style
+;; dispatcher. Additionally enable `partial-completion' for file path
+;; expansion. `partial-completion' is important for wildcard support.
+;; Multiple files can be opened at once with `find-file' if you enter a
+;; wildcard. You may also give the `initials' completion style a try.
+(leaf orderless
   :ensure t
-  :custom ((prescient-aggressive-file-save . t))
-  :global-minor-mode prescient-persist-mode)
+  :init
+  ;; Configure a custom style dispatcher (see the Consult wiki)
+  ;; (setq orderless-style-dispatchers '(+orderless-dispatch)
+  ;;       orderless-component-separator #'orderless-escapable-split-on-space)
+  (setq completion-styles '(orderless)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles partial-completion)))))
 
-(leaf ivy-prescient
-  :doc "prescient.el + Ivy"
-  :req "emacs-25.1" "prescient-4.0" "ivy-0.11.0"
-  :tag "extensions" "emacs>=25.1"
-  :url "https://github.com/raxod502/prescient.el"
-  :emacs>= 25.1
+(leaf consult
   :ensure t
-  :after prescient ivy
-  :custom ((ivy-prescient-retain-classic-highlighting . t))
-  :global-minor-mode t)
+  :init
+  (advice-add #'completing-read-multiple :override #'consult-completing-read-MULTIPLE)
+  (advice-add #'register-preview :override #'consult-register-window)
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)
+  :leaf-defer nil
+  :hook
+  ;; Enable automatic preview at point in the *Completions* buffer. This is
+  ;; relevant when you use the default completion UI. You may want to also
+  ;; enable `consult-preview-at-point-mode` in Embark Collect buffers.
+  ;;(completion-list-mode . consult-preview-at-point-mode)
+  :bind (
+         ("M-g g" . consult-goto)
+         ("M-g M-g" . consult-goto)
+         ("M-g o" . consult-outline)
+         ("M-g i" . consult-imenu)
+         ("M-g I" . consult-imenu-multi)
+         (isearch-mode-map
+          ("C-;" . consult-line))
+         )
+  :config
+  (mykie:global-set-key "C-M-g"
+    :default    consult-ripgrep
+    :C-u!       consult-git-grep
+   )
+  (mykie:global-set-key "C-s"
+    :default    isearch-forward
+    :C-u!       consult-line
+   )
+  (mykie:global-set-key "M-y"
+    :default    consult-yank-pop
+    :C-u!       consult-yank-from-kill-ring
+   )
+  (mykie:global-set-key "C-;"
+    :default    consult-buffer
+    :C-u!       consult-ghq-find
+  )
+  (setq completion-in-region-function
+        (lambda (&rest args)
+          (apply (if vertico-mode
+                     #'consult-completion-in-region
+                   #'completion--in-region)
+                 args)))
+  ;; Optionally configure a function which returns the project root directory.
+  ;; There are multiple reasonable alternatives to chose from.
+  ;;;; 1. project.el (project-roots)
+  (setq consult-project-root-function
+        (lambda ()
+          (when-let (project (project-current))
+            (car (project-roots project)))))
+  ;;;; 2. projectile.el (projectile-project-root)
+  ;; (autoload 'projectile-project-root "projectile")
+  ;; (setq consult-project-root-function #'projectile-project-root)
+  ;;;; 3. vc.el (vc-root-dir)
+  ;; (setq consult-project-root-function #'vc-root-dir)
+  ;;;; 4. locate-dominating-file
+  ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
+  ;; :custom (consult-buffer-sources
+  ;;          . (consult--source-buffer
+  ;;             consult--source-hidden-buffer
+  ;;             consult--source-file
+  ;;             consult--source-recent-file
+  ;;             consult--source-project-buffer
+  ;;             consult--source-project-file
+  ;;             )
+
+  ;;          )
+  (leaf consult-ghq :ensure t)
+  )
+
+;; Persist history over Emacs restarts. Vertico sorts by history position.
+(leaf savehist
+  :init
+  (savehist-mode))
 
 (leaf flycheck
   :doc "On-the-fly syntax checking"
@@ -441,14 +557,6 @@
            )
 )
 
-;;;;;; ToDo: migration
-;; init-loader
-;; (use-package init-loader
-;;   :ensure t
-;;   :config
-;;   (init-loader-load (locate-user-emacs-file "./inits"))
-;;   )
-
 (use-package exec-path-from-shell
   :unless (equal system-type 'windows-nt)
   :ensure t
@@ -457,6 +565,7 @@
   )
 
 (use-package rainbow-delimiters
+  :ensure t
   :hook
   (prog-mode . rainbow-delimiters-mode)
   (emacs-lisp-mode . rainbow-delimiters-mode)
@@ -538,62 +647,69 @@
   )
 
 ;; 空白とかを可視化
-(use-package whitespace
-  :ensure t
-  :config
-  (setq whitespace-style '(
-                           face           ; faceで可視化
-                           trailing       ; 末尾
-                           tabs           ; タブ
-                           space
-                           empty          ; 先頭/末尾の空行
-                           space-mark     ; 表示のマッピング
-                           tab-mark
-                           ))
-                                        ; from http://cloverrose.hateblo.jp/entry/2013/04/12/041758
-  (setq whitespace-display-mappings
-        '(
-          ;; (space-mark   ?\     [?\u00B7]     [?.]) ; space - centered dot
-          (space-mark   ?\xA0  [?\u00A4]     [?_]) ; hard space - currency
-          (space-mark   ?\x8A0 [?\x8A4]      [?_]) ; hard space - currency
-          (space-mark   ?\x920 [?\x924]      [?_]) ; hard space - currency
-          (space-mark   ?\xE20 [?\xE24]      [?_]) ; hard space - currency
-          (space-mark   ?\xF20 [?\xF24]      [?_]) ; hard space - currency
-          (space-mark ?\u3000 [?\u25a1] [?_ ?_]) ; full-width-space - square
-          ;; NEWLINE is displayed using the face `whitespace-newline'
-          ;; (newline-mark ?\n    [?$ ?\n])  ; eol - dollar sign
-          ;; (newline-mark ?\n    [?\u21B5 ?\n] [?$ ?\n])	; eol - downwards arrow
-          ;; (newline-mark ?\n    [?\u00B6 ?\n] [?$ ?\n])	; eol - pilcrow
-          ;; (newline-mark ?\n    [?\x8AF ?\n]  [?$ ?\n])	; eol - overscore
-          ;; (newline-mark ?\n    [?\x8AC ?\n]  [?$ ?\n])	; eol - negation
-          ;; (newline-mark ?\n    [?\x8B0 ?\n]  [?$ ?\n])	; eol - grade
-          ;;
-          ;; WARNING: the mapping below has a problem.
-          ;; When a TAB occupies exactly one column, it will display the
-          ;; character ?\xBB at that column followed by a TAB which goes to
-          ;; the next TAB column.
-          ;; If this is a problem for you, please, comment the line below.
-          (tab-mark     ?\t    [?\u00BB ?\t] [?\\ ?\t]) ; tab - left quote mark
-          ))
-  (defvar my/bg-color "#232323")
-  (set-face-attribute 'whitespace-trailing nil
-                      :background my/bg-color
-                      :foreground "DeepPink"
-                      :underline t)
-  (set-face-attribute 'whitespace-tab nil
-                      :background my/bg-color
-                      :foreground "LightSkyBlue"
-                      :underline t)
-  (set-face-attribute 'whitespace-space nil
-                      :background my/bg-color
-                      :foreground "GreenYellow"
-                      :weight 'bold)
-  (set-face-attribute 'whitespace-empty nil
-                      :background my/bg-color)
-  (setq whitespace-action '(auto-cleanup))
-  (global-whitespace-mode 1)
-  )
+(leaf whitespace
+  :hook (after-init-hook . global-whitespace-mode)
+  :custom
+  (whitespace-style
+   . '(face
+       trailing
+       tabs
+       space
+       empty
+       space-mark
+       tab-mark
+       ))
+  (whitespace-global-modes
+   . '(not eww-mode
+           term-mode
+           eshell-mode
+           org-agenda-mode
+           calendar-mode))
+  (whitespace-display-mappings
+   . '(
+       ;; (space-mark   ?\     [?\u00B7]     [?.]) ; space - centered dot
+       (space-mark   ?\xA0  [?\u00A4]     [?_]) ; hard space - currency
+       (space-mark   ?\x8A0 [?\x8A4]      [?_]) ; hard space - currency
+       (space-mark   ?\x920 [?\x924]      [?_]) ; hard space - currency
+       (space-mark   ?\xE20 [?\xE24]      [?_]) ; hard space - currency
+       (space-mark   ?\xF20 [?\xF24]      [?_]) ; hard space - currency
+       (space-mark ?\u3000 [?\u25a1] [?_ ?_]) ; full-width-space - square
+       ;; NEWLINE is displayed using the face `whitespace-newline'
+       ;; (newline-mark ?\n    [?$ ?\n])  ; eol - dollar sign
+       ;; (newline-mark ?\n    [?\u21B5 ?\n] [?$ ?\n])	; eol - downwards arrow
+       ;; (newline-mark ?\n    [?\u00B6 ?\n] [?$ ?\n])	; eol - pilcrow
+       ;; (newline-mark ?\n    [?\x8AF ?\n]  [?$ ?\n])	; eol - overscore
+       ;; (newline-mark ?\n    [?\x8AC ?\n]  [?$ ?\n])	; eol - negation
+       ;; (newline-mark ?\n    [?\x8B0 ?\n]  [?$ ?\n])	; eol - grade
+       ;;
+       ;; WARNING: the mapping below has a problem.
+       ;; When a TAB occupies exactly one column, it will display the
+       ;; character ?\xBB at that column followed by a TAB which goes to
+       ;; the next TAB column.
+       ;; If this is a problem for you, please, comment the line below.
+       ;; (tab-mark     ?\t    [?\u00BB ?\t] [?\\ ?\t]) ; tab - left quote mark
+       ))
 
+  (whitespace-action . '(auto-cleanup))
+ )
+;;   (defvar my/bg-color "#232323")
+;;   (set-face-attribute 'whitespace-trailing nil
+;;                       :background my/bg-color
+;;                       :foreground "DeepPink"
+;;                       :underline t)
+;;   (set-face-attribute 'whitespace-tab nil
+;;                       :background my/bg-color
+;;                       :foreground "LightSkyBlue"
+;;                       :underline t)
+;;   (set-face-attribute 'whitespace-space nil
+;;                       :background my/bg-color
+;;                       :foreground "GreenYellow"
+;;                       :weight 'bold)
+;;   (set-face-attribute 'whitespace-empty nil
+;;                       :background my/bg-color)
+;;   (setq whitespace-action '(auto-cleanup))
+;;   (global-whitespace-mode 1)
+;;   )
 
 (provide 'init)
 ;;; init.el ends here
