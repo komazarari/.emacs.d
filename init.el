@@ -63,7 +63,9 @@
 
 (leaf cus-edit
   :tag "builtin" "faces"
-  :custom `((custom-file . ,(locate-user-emacs-file "custom.el"))))
+  :custom `((custom-file . ,(locate-user-emacs-file "custom.el")))
+  :config (load custom-file)
+)
 
 (leaf cus-start
   :doc "define customization properties of builtins"
@@ -92,8 +94,8 @@
             ;; (truncate-lines . t)
             ;; (use-dialog-box . nil)
             ;; (use-file-dialog . nil)
-            ;; (menu-bar-mode . t)
-            ;; (tool-bar-mode . nil)
+            ;; (menu-bar-mode . t) ; メニューバーツールバーとスクロールバー
+            (tool-bar-mode . nil)
             (scroll-bar-mode . nil)
             (indent-tabs-mode . nil)
 
@@ -134,6 +136,8 @@
   (keyboard-translate ?\C-h ?\C-?)
   )
 
+
+
 ;; ;;; dired の a で開くやつ
 (put 'dired-find-alternate-file 'disabled nil)
 
@@ -142,11 +146,6 @@
 
 ;;; インデントにTABを使わないようにする
 ;; (setq-default indent-tabs-mode nil)
-
-;;; メニューバーとツールバーとスクロールバーを消す
-;(menu-bar-mode -1)
-;(tool-bar-mode -1)
-;(scroll-bar-mode -1)
 
 ;; 補完
 (global-set-key (kbd "M-/") 'hippie-expand)
@@ -249,7 +248,7 @@
   :tag "builtin" "internal"
   :custom ((kill-ring-max . 100)
            (kill-read-only-ok . t)
-           (kill-whole-line . t)
+           (kill-whole-line . nil)
            (eval-expression-print-length . nil)
            (eval-expression-print-level . nil)))
 
@@ -538,10 +537,15 @@
   :ensure t
   :config
   (doom-modeline-mode 1)
-  ;; :custom (
+  :custom-face
+  (mode-line . '((t (:height 0.95))))
+  (mode-line-inactive . '((t (:height 0.95))))
+  :custom (
   ;;          (line-number-mode . t)
   ;;          (column-number-mode . t)
-  ;;          )
+          (doom-modeline-icon . t)
+
+           )
   ;; (line-number-mode 0)
   ;; ;;(column-number-mode 0)
   ;; (doom-modeline-def-modeline 'main
@@ -720,6 +724,74 @@
 ;;   (setq whitespace-action '(auto-cleanup))
 ;;   (global-whitespace-mode 1)
 ;;   )
+
+(leaf markdown-mode
+  :ensure t
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :init (setq markdown-command "multimarkdown")
+  )
+
+(use-package mozc :ensure t
+  :if (executable-find "mozc_emacs_helper.sh")
+  :init
+  (setq mozc-helper-program-name "mozc_emacs_helper.sh")
+  (setq default-input-method "japanese-mozc")
+  (setq mozc-candidate-style 'echo-area)
+
+  ;; Windows の mozc では、セッション接続直後 directモード になるので hiraganaモード にする
+  (advice-add 'mozc-session-execute-command
+              :after (lambda (&rest args)
+                       (when (eq (nth 0 args) 'CreateSession)
+                         ;; (mozc-session-sendkey '(hiragana)))))
+                         (mozc-session-sendkey '(Hankaku/Zenkaku)))))
+  )
+
+(use-package noflet)
+(use-package google-translate
+  ;; :requires noflet
+  ;; :preface
+  :preface
+
+  (defun google-translate-at-point-autodetect (&optional override-p)
+    (interactive "P")
+    (noflet ((google-translate-translate
+              (source-language target-language text &optional output-destination)
+              (message "yattane")
+              (when (use-region-p)
+                ;; リージョンのテキストを取得する（矩形リージョンにも対応）
+                (setq text (funcall region-extract-function nil))
+                ;; マークを無効にする
+                (deactivate-mark)
+                (when (fboundp 'cua-cancel)
+                  (cua-cancel)))
+              ;; 行頭、行末のホワイトスペースを削除し、文章の途中にある改行をスペース
+              ;; に変換してから翻訳する
+              (let ((str (replace-regexp-in-string
+                          "\\([^\n]\\)\n\\([^\n]\\)" "\\1 \\2"
+                          (replace-regexp-in-string "^\s*\\(.*?\\)\s*$" "\\1" text))))
+                (message "str is %s" str)
+                ;; C-u が前置された場合は、翻訳言語を選択する
+                (if current-prefix-arg
+                    (message "zzzzzz")
+                    (funcall this-fn source-language target-language str
+                             output-destination)
+                  ;; 翻訳する文字列に英字以外の文字が含まれている割合（閾値：20%）で翻訳方向を決定する
+                  (if (>= (/ (* (length (replace-regexp-in-string "[[:ascii:]]" "" str)) 100)
+                             (length str))
+                          20) ; %
+                      (funcall this-fn "ja" "en" str output-destination)
+                    (funcall this-fn "en" "ja" str output-destination))))))
+      (google-translate-at-point override-p))
+    )
+  (defun google-translate--get-b-d1 ()
+    ;; TKK='427110.1469889687'
+    (list 427110 1469889687))
+  :bind
+  ("C-c t" . google-translate-at-point-autodetect)
+)
 
 (provide 'init)
 ;;; init.el ends here
