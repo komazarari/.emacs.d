@@ -34,6 +34,7 @@
   (unless (package-installed-p 'use-package)
     (package-refresh-contents)
     (package-install 'use-package))
+  (defvar use-package-enable-imenu-support)
   (setq use-package-enable-imenu-support t)
   (require 'use-package)
   )
@@ -268,6 +269,7 @@
   (recentf-max-saved-items . 200)
   (recentf-exclude . '("/recentf" "COMMIT_EDITMSG" "/.?TAGS" "^/sudo:" "/\\.emacs\\.d/games/*-scores" "/\\.emacs\\.d/\\.cask/"))
   :config
+  (defvar recentf-auto-save-timer)
   (setq recentf-auto-save-timer (run-with-idle-timer 30 t 'recentf-save-list))
   :global-minor-mode recentf-mode
   )
@@ -381,10 +383,10 @@
 (leaf consult
   :ensure t
   :init
-  (advice-add #'completing-read-multiple :override #'consult-completing-read-MULTIPLE)
+  (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
   (advice-add #'register-preview :override #'consult-register-window)
-  (setq xref-show-xrefs-function #'consult-xref
-        xref-show-definitions-function #'consult-xref)
+  ;; (setq xref-show-xrefs-function #'consult-xref
+  ;;      xref-show-definitions-function #'consult-xref)
   :leaf-defer nil
   :hook
   ;; Enable automatic preview at point in the *Completions* buffer. This is
@@ -426,6 +428,7 @@
   ;; Optionally configure a function which returns the project root directory.
   ;; There are multiple reasonable alternatives to chose from.
   ;;;; 1. project.el (project-roots)
+  (defvar consult-project-root-function)
   (setq consult-project-root-function
         (lambda ()
           (when-let (project (project-current))
@@ -653,7 +656,7 @@
     ("^" . enlarge-window)
     ("-" . shrink-window)))
 
-
+;; いろいろなコメントアウトをトグル
 (use-package comment-dwim-2
   :ensure t
   :config
@@ -731,7 +734,9 @@
   :mode (("README\\.md\\'" . gfm-mode)
          ("\\.md\\'" . markdown-mode)
          ("\\.markdown\\'" . markdown-mode))
-  :init (setq markdown-command "multimarkdown")
+  ;; :init (setq markdown-command "multimarkdown")
+  :custom
+  (markdown-command . "multimarkdown")
   )
 
 (use-package mozc :ensure t
@@ -751,15 +756,18 @@
 
 (use-package noflet)
 (use-package google-translate
-  ;; :requires noflet
+  :requires noflet
   ;; :preface
-  :preface
-
+  ;; :init
+  :defer nil
+  :config
+  (defun google-translate--get-b-d1 ()
+    ;; TKK='427110.1469889687'
+    (list 427110 1469889687))
   (defun google-translate-at-point-autodetect (&optional override-p)
     (interactive "P")
     (noflet ((google-translate-translate
               (source-language target-language text &optional output-destination)
-              (message "yattane")
               (when (use-region-p)
                 ;; リージョンのテキストを取得する（矩形リージョンにも対応）
                 (setq text (funcall region-extract-function nil))
@@ -772,10 +780,8 @@
               (let ((str (replace-regexp-in-string
                           "\\([^\n]\\)\n\\([^\n]\\)" "\\1 \\2"
                           (replace-regexp-in-string "^\s*\\(.*?\\)\s*$" "\\1" text))))
-                (message "str is %s" str)
                 ;; C-u が前置された場合は、翻訳言語を選択する
                 (if current-prefix-arg
-                    (message "zzzzzz")
                     (funcall this-fn source-language target-language str
                              output-destination)
                   ;; 翻訳する文字列に英字以外の文字が含まれている割合（閾値：20%）で翻訳方向を決定する
@@ -786,12 +792,20 @@
                     (funcall this-fn "en" "ja" str output-destination))))))
       (google-translate-at-point override-p))
     )
-  (defun google-translate--get-b-d1 ()
-    ;; TKK='427110.1469889687'
-    (list 427110 1469889687))
+
   :bind
   ("C-c t" . google-translate-at-point-autodetect)
 )
 
+;; (leaf docker)
+(leaf dockerfile-mode :ensure t)
+(leaf docker-tramp
+  :custom
+  (docker-tramp-use-names . t))
+
 (provide 'init)
+
+;; Local Variables:
+;; byte-compile-warnings: (not cl-functions obsolete)
+;; End:
 ;;; init.el ends here
