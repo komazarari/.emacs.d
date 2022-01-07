@@ -127,7 +127,7 @@
   ;; モードラインに時刻を表示する
   (display-time)
   ;; ido
-  ;; (ido-mode 1)
+  (ido-mode 1)
 
   ;; 行番号とか
   (global-display-line-numbers-mode)
@@ -385,8 +385,8 @@
   :init
   (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
   (advice-add #'register-preview :override #'consult-register-window)
-  ;; (setq xref-show-xrefs-function #'consult-xref
-  ;;      xref-show-definitions-function #'consult-xref)
+  (setq xref-show-xrefs-function #'consult-xref
+       xref-show-definitions-function #'consult-xref)
   :leaf-defer nil
   :hook
   ;; Enable automatic preview at point in the *Completions* buffer. This is
@@ -802,6 +802,18 @@
 (leaf docker-tramp
   :custom
   (docker-tramp-use-names . t))
+
+(use-package go-mode)
+
+(use-package lsp-mode
+  :init
+  (setq lsp-keymap-prefix "C-c l")
+  :hook
+  (go-mode . lsp-deferred)
+  :commands (lsp lsp-deferred)
+  )
+(use-package lsp-ui
+  :commands lsp-ui-mode)
 
 (provide 'init)
 
