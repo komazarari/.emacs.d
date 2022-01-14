@@ -570,7 +570,8 @@
   :custom (
            (highlight-indent-guides-auto-enabled . t)
            (highlight-indent-guides-responsive . t)
-           (highlight-indent-guides-method . 'character) ; column
+           ;; (highlight-indent-guides-method . 'character) ; column
+           (highlight-indent-guides-method . 'column) ;
            )
 )
 
@@ -814,6 +815,15 @@
   )
 (use-package lsp-ui
   :commands lsp-ui-mode)
+
+(leaf groovy-mode
+  :ensure t
+  :custom
+  (groovy-indent-offset . 2)
+  )
+(leaf jenkinsfile-mode
+  :ensure t
+  )
 
 (provide 'init)
 
