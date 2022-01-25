@@ -62,6 +62,11 @@
 ;;   (package-refresh-contents))
 ;;;;;;;;;;;;
 
+(defvar find-command
+  (cond
+    ((executable-find "rg") "rg --color=never --files --hidden --glob \"!.git\"")
+    (t "find -not ( -wholename */.* -prune ) -type f")))
+
 (leaf cus-edit
   :tag "builtin" "faces"
   :custom `((custom-file . ,(locate-user-emacs-file "custom.el")))
@@ -380,8 +385,41 @@
          )
   )
 
+(leaf affe
+  :custom
+  (affe-find-command . find-command)
+  )
+
 (leaf consult
   :ensure t
+
+  :preface
+  (defun ghq--list-candidates ()  ;; from https://github.com/tomoya/consult-ghq
+    "Return ghq list candidate."
+    (with-temp-buffer
+      (unless (zerop (apply #'call-process
+                            "ghq" nil t nil
+                            '("list" "--full-path")))
+        (error "Failed: Cannot get ghq list candidates"))
+      (let ((paths))
+        (goto-char (point-min))
+        (while (not (eobp))
+          (push
+           (buffer-substring-no-properties
+            (line-beginning-position) (line-end-position))
+           paths)
+          (forward-line 1))
+        (nreverse paths))))
+  (defvar consult--source-ghq
+    (list :name "ghq source"
+          :narrow ?g
+          :category 'consult-new
+          :face 'font-lock-keyword-face
+          :items #'ghq--list-candidates
+          :action #'affe-find
+          )
+    )
+
   :init
   (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
   (advice-add #'register-preview :override #'consult-register-window)
@@ -451,6 +489,8 @@
 
   ;;          )
   (leaf consult-ghq :ensure t)
+  :defer-config
+  (add-to-list 'consult-buffer-sources 'consult--source-ghq 'append) ;
   )
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
@@ -554,6 +594,11 @@
   ;; (doom-modeline-def-modeline 'main
   ;;                             '(bar workspace-number window-number evil-state god-state ryo-modal xah-fly-keys matches buffer-info remote-host buffer-position parrot selection-info)
   ;;                             '(misc-info persp-name lsp github debug minor-modes input-method major-mode process vcs checker))
+  )
+
+(leaf js-mode
+  :custom
+  (js-indent-level . 2)
   )
 
 (leaf yaml-mode
