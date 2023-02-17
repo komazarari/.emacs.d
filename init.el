@@ -80,7 +80,7 @@
   (defun c/redraw-frame nil
     (interactive)
     (redraw-frame))
-
+  :leaf-defer nil
   :bind (("M-ESC ESC" . c/redraw-frame))
   :custom '((user-full-name . "Takuto Komazaki")
             (user-mail-address . "komazarari@gmail.com")
@@ -533,6 +533,11 @@
            (company-transformers . '(company-sort-by-occurrence)))
   :global-minor-mode global-company-mode)
 
+(leaf dmacro
+  :ensure t
+  :custom `((dmacro-key . ,(kbd "C-S-e")))
+  :global-minor-mode global-dmacro-mode)
+
 (leaf company-c-headers
   :doc "Company mode backend for C/C++ header files"
   :req "emacs-24.1" "company-0.8"
@@ -604,6 +609,15 @@
 (leaf yaml-mode
   :ensure t
   :config
+  )
+
+(leaf terraform-mode
+  :ensure t
+  :hook (
+         terraform-mode-hook
+         .
+         terraform-format-on-save-mode
+         )
   )
 
 (leaf highlight-indent-guides
