@@ -529,7 +529,7 @@
           ("C-n" . company-select-next)
           ("C-p" . company-select-previous)))
   :custom ((company-idle-delay . 0)
-           (company-minimum-prefix-length . 2)
+           (company-minimum-prefix-length . 3)
            (company-transformers . '(company-sort-by-occurrence)))
   :global-minor-mode global-company-mode)
 
@@ -578,6 +578,7 @@
   :config
   (global-git-gutter-mode t))
 
+;; after installed, run M-x all-the-icons-install-fonts && fc-cache -f -v
 (leaf all-the-icons
   :ensure t)
 
@@ -814,56 +815,13 @@
                          (mozc-session-sendkey '(Hankaku/Zenkaku)))))
   )
 
-(use-package noflet)
-(use-package google-translate
-  :requires noflet
-  ;; :preface
-  ;; :init
-  :defer nil
-  :config
-  (defun google-translate--get-b-d1 ()
-    ;; TKK='427110.1469889687'
-    (list 427110 1469889687))
-  (defun google-translate-at-point-autodetect (&optional override-p)
-    (interactive "P")
-    (noflet ((google-translate-translate
-              (source-language target-language text &optional output-destination)
-              (when (use-region-p)
-                ;; リージョンのテキストを取得する（矩形リージョンにも対応）
-                (setq text (funcall region-extract-function nil))
-                ;; マークを無効にする
-                (deactivate-mark)
-                (when (fboundp 'cua-cancel)
-                  (cua-cancel)))
-              ;; 行頭、行末のホワイトスペースを削除し、文章の途中にある改行をスペース
-              ;; に変換してから翻訳する
-              (let ((str (replace-regexp-in-string
-                          "\\([^\n]\\)\n\\([^\n]\\)" "\\1 \\2"
-                          (replace-regexp-in-string "^\s*\\(.*?\\)\s*$" "\\1" text))))
-                ;; C-u が前置された場合は、翻訳言語を選択する
-                (if current-prefix-arg
-                    (funcall this-fn source-language target-language str
-                             output-destination)
-                  ;; 翻訳する文字列に英字以外の文字が含まれている割合（閾値：20%）で翻訳方向を決定する
-                  (if (>= (/ (* (length (replace-regexp-in-string "[[:ascii:]]" "" str)) 100)
-                             (length str))
-                          20) ; %
-                      (funcall this-fn "ja" "en" str output-destination)
-                    (funcall this-fn "en" "ja" str output-destination))))))
-      (google-translate-at-point override-p))
-    )
-
-  :bind
-  ("C-c t" . google-translate-at-point-autodetect)
-)
-
 ;; (leaf docker)
 (leaf dockerfile-mode :ensure t)
 (leaf docker-tramp
   :custom
   (docker-tramp-use-names . t))
 
-(use-package go-mode)
+;; (use-package go-mode)
 
 (use-package lsp-mode
   :init
