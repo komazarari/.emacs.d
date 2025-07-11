@@ -28,6 +28,21 @@
    'package-archives '(("melpa" . "https://melpa.org/packages/")
                        ("gnu"   . "https://elpa.gnu.org/packages/")
                        ("org"   . "https://orgmode.org/elpa/")))
+  (package-initialize)
+  (use-package leaf :ensure t)
+
+  (leaf leaf-keywords
+    :ensure t
+    :init
+    ;;   ;; optional packages if you want to use :hydra, :el-get, :blackout,,,
+    ;;   (leaf hydra :ensure t)
+    ;;   (leaf el-get :ensure t)
+    (leaf blackout :ensure t)
+
+    :config
+    ;;   ;; initialize leaf-keywords.el
+    (leaf-keywords-init)
+    )
   )
 
 (eval-when-compile
@@ -37,25 +52,6 @@
   (defvar use-package-enable-imenu-support)
   (setq use-package-enable-imenu-support t)
   (require 'use-package)
-  )
-
-(eval-and-compile
-;  (package-initialize t)
-  (unless (package-installed-p 'leaf)
-    (package-refresh-contents)
-    (package-install 'leaf))
-  (leaf leaf-keywords
-    :ensure t
-    ;;   :init
-    ;;   ;; optional packages if you want to use :hydra, :el-get, :blackout,,,
-    ;;   (leaf hydra :ensure t)
-    ;;   (leaf el-get :ensure t)
-    ;;   (leaf blackout :ensure t)
-
-    :config
-    ;;   ;; initialize leaf-keywords.el
-    (leaf-keywords-init)
-    )
   )
 
 ;; (unless package-archive-contents
@@ -85,7 +81,9 @@
   :custom '((user-full-name . "Takuto Komazaki")
             (user-mail-address . "komazarari@gmail.com")
             (user-login-name . "komazarari")
+            (set-locale-environment . "ja_JP.utf8")
             (create-lockfiles . nil)
+            (tab-width . 4)
             (debug-on-error . t)
             (init-file-debug . t)
             (frame-resize-pixelwise . t)
@@ -126,8 +124,7 @@
             )
   :config
   (defalias 'yes-or-no-p 'y-or-n-p)
-  (setq-default tab-width 4)
-  ;; 右から左に読む言語に対応させないことで描画高速化
+   ;; 右から左に読む言語に対応させないことで描画高速化
   (setq-default bidi-display-reordering nil)
   ;; モードラインに時刻を表示する
   (display-time)
@@ -149,9 +146,6 @@
 
 ;; ;;; splash screenを無効にする
 ;; (setq inhibit-splash-screen t)
-
-;;; インデントにTABを使わないようにする
-;; (setq-default indent-tabs-mode nil)
 
 ;; 補完
 (global-set-key (kbd "M-/") 'hippie-expand)
@@ -186,7 +180,6 @@
 
 ;; C-, ウィンドウ切り替え
 (global-set-key (kbd "C-,") 'other-window)
-;;  => 95_additional にも np 同時押し
 
 ;; インデント
 ;(global-set-key "\C-c\C-q" 'indent-region)
@@ -284,70 +277,6 @@
   :tag "builtin" "internal"
   :custom `((auto-save-list-file-prefix . ,(locate-user-emacs-file "backup/.saves-"))))
 
-;; (leaf ivy
-;;   :doc "Incremental Vertical completYon"
-;;   :req "emacs-24.5"
-;;   :tag "matching" "emacs>=24.5"
-;;   :url "https://github.com/abo-abo/swiper"
-;;   :emacs>= 24.5
-;;   :ensure t
-;; ;  :blackout t
-;;   :leaf-defer nil
-;;   :custom ((ivy-initial-inputs-alist . nil)
-;;            (ivy-use-selectable-prompt . t))
-;;   :global-minor-mode t
-;;   :config
-;;   (leaf swiper
-;;     :doc "Isearch with an overview. Oh, man!"
-;;     :req "emacs-24.5" "ivy-0.13.0"
-;;     :tag "matching" "emacs>=24.5"
-;;     :url "https://github.com/abo-abo/swiper"
-;;     :emacs>= 24.5
-;;     :ensure t
-;;    ;; :bind (("C-s" . swiper))
-;;     :config
-;;     (mykie:global-set-key "C-s"
-;;       :default    isearch-forward
-;;       :C-u!       swiper
-;;       )
-;;     )
-
-;;   (leaf counsel
-;;     :doc "Various completion functions using Ivy"
-;;     :req "emacs-24.5" "swiper-0.13.0"
-;;     :tag "tools" "matching" "convenience" "emacs>=24.5"
-;;     :url "https://github.com/abo-abo/swiper"
-;;     :emacs>= 24.5
-;;     :ensure t
-;;  ;   :blackout t
-;;     :bind (("C-S-s" . counsel-imenu)
-;;            ("C-x C-r" . counsel-recentf))
-;;     :custom `((counsel-yank-pop-separator . "\n----------\n")
-;;               (counsel-find-file-ignore-regexp . ,(rx-to-string '(or "./" "../") 'no-group)))
-;;     :global-minor-mode t)
-;;   )
-
-;; (leaf prescient
-;;   :doc "Better sorting and filtering"
-;;   :req "emacs-25.1"
-;;   :tag "extensions" "emacs>=25.1"
-;;   :url "https://github.com/raxod502/prescient.el"
-;;   :emacs>= 25.1
-;;   :ensure t
-;;   :custom ((prescient-aggressive-file-save . t))
-;;   :global-minor-mode prescient-persist-mode)
-
-;; (leaf ivy-prescient
-;;   :doc "prescient.el + Ivy"
-;;   :req "emacs-25.1" "prescient-4.0" "ivy-0.11.0"
-;;   :tag "extensions" "emacs>=25.1"
-;;   :url "https://github.com/raxod502/prescient.el"
-;;   :emacs>= 25.1
-;;   :ensure t
-;;   :after prescient ivy
-;;   :custom ((ivy-prescient-retain-classic-highlighting . t))
-;;   :global-minor-mode t)
-
 ;; minibuffer 拡げるやつ
 (leaf vertico
   :ensure t
@@ -386,6 +315,7 @@
   )
 
 (leaf affe
+  :ensure t
   :custom
   (affe-find-command . find-command)
   )
@@ -621,19 +551,19 @@
          )
   )
 
-(leaf highlight-indent-guides
-  :ensure t
-  :hook ((prog-mode-hook
-          yaml-mode-hook
-          )
-         . highlight-indent-guides-mode)
-  :custom (
-           (highlight-indent-guides-auto-enabled . t)
-           (highlight-indent-guides-responsive . t)
-           ;; (highlight-indent-guides-method . 'character) ; column
-           (highlight-indent-guides-method . 'column) ;
-           )
-)
+;; (leaf highlight-indent-guides
+;;   :ensure t
+;;   :hook ((prog-mode-hook
+;;           yaml-mode-hook
+;;           )
+;;          . highlight-indent-guides-mode)
+;;   :custom (
+;;            (highlight-indent-guides-auto-enabled . t)
+;;            (highlight-indent-guides-responsive . t)
+;;            ;; (highlight-indent-guides-method . 'character) ; column
+;;            (highlight-indent-guides-method . 'column) ;
+;;            )
+;; )
 
 (use-package exec-path-from-shell
   :unless (equal system-type 'windows-nt)
@@ -677,23 +607,31 @@
   :ensure t
   :config
   (multiple-cursors-mode)
+  :bind (
+         ("C-S-c C-S-c" . mc/edit-lines) ;; リージョン選択して複数行編集
+         ("M-<down-mouse-1>" . mc/add-cursor-on-click) ;; Alt クリックで複数選択
+         ("C-M-n" . mc/mark-next-lines)
+         ;; ("C-M-p" . mc/mark-previous-lines)
+         ;; ("C-M-N" . mc/mark-next-line-this-symbol)
+         ;; ("C-M-P" . mc/mark-previous-line-this-symbol)
+         )
   )
-(use-package region-bindings-mode
-  :ensure t
-  :config
-  (region-bindings-mode-enable)
-  :bind (:map region-bindings-mode-map
-              ("a" . 'mc/mark-all-like-this)
-              ("p" . 'mc/mark-previous-lines)
-              ("n" . 'mc/mark-next-lines)
-              ("P" . 'mc/mark-previous-like-this)
-              ("N" . 'mc/mark-next-like-this)
-              ("s" . 'mc/skip-to-next-like-this)
-              ("S" . 'mc/skip-to-previous-like-this)
-              ("m" . 'mc/mark-more-like-this-extended)
-              ("q" . 'query-replace-regexp)
-              )
-  )
+;; (use-package region-bindings-mode
+;;   :ensure t
+;;   :config
+;;   (region-bindings-mode-enable)
+;;   :bind (:map region-bindings-mode-map
+;;               ("a" . 'mc/mark-all-like-this)
+;;               ("p" . 'mc/mark-previous-lines)
+;;               ("n" . 'mc/mark-next-lines)
+;;               ("P" . 'mc/mark-previous-like-this)
+;;               ("N" . 'mc/mark-next-like-this)
+;;               ("s" . 'mc/skip-to-next-like-this)
+;;               ("S" . 'mc/skip-to-previous-like-this)
+;;               ("m" . 'mc/mark-more-like-this-extended)
+;;               ("q" . 'query-replace-regexp)
+;;               )
+;;   )
 
 ;; C-a, C-e で先頭, 末尾
 (use-package sequential-command
