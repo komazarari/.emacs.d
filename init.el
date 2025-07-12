@@ -54,7 +54,6 @@
             (tool-bar-mode . nil)
             (scroll-bar-mode . nil)
             (indent-tabs-mode . nil)
-            (set-mark-command-repeat-pop . t)
             (global-hl-line-mode . t)
             (electric-pair-mode . t)
             (savehist-mode . 1)
@@ -69,6 +68,14 @@
   (setq-default indicate-empty-lines t)
   (setq-default indicate-buffer-boundaries 'left)
   (keyboard-translate ?\C-h ?\C-?))
+
+(leaf simple
+  :doc "basic editing commands for Emacs - mark and kill ring settings"
+  :tag "builtin"
+  :custom ((set-mark-command-repeat-pop . t)
+           (kill-ring-max . 100)
+           (kill-read-only-ok . t)
+           (kill-whole-line . t)))
 
 (leaf autorevert
   :doc "revert buffers when files on disk change"
@@ -90,3 +97,38 @@
   :doc "Display available keybindings in popup"
   :ensure t
   :global-minor-mode t)
+
+(leaf files
+  :doc "file input and output commands for Emacs - backup and auto-save settings"
+  :tag "builtin"
+  :custom `((auto-save-timeout . 15)
+            (auto-save-interval . 60)
+            (auto-save-file-name-transforms . '((".*" ,(locate-user-emacs-file "backup/") t)))
+            (backup-directory-alist . '((".*" . ,(locate-user-emacs-file "backup"))
+                                        (,tramp-file-name-regexp . nil)))
+            (version-control . t)
+            (delete-old-versions . t)))
+
+(leaf startup
+  :doc "process Emacs shell arguments - auto-save list file location"
+  :tag "builtin" "internal"
+  :custom `((auto-save-list-file-prefix . ,(locate-user-emacs-file "backup/.saves-"))))
+
+(leaf savehist
+  :doc "save minibuffer history"
+  :tag "builtin"
+  :custom (
+           (savehist-additional-variables . '(search-ring regexp-search-ring))
+           )
+  :global-minor-mode savehist-mode)
+
+(leaf recentf
+  :doc "setup to save you a lot of time when switching between files"
+  :tag "builtin"
+  :custom ((recentf-max-saved-items . 500)
+           (recentf-exclude . '("/recentf" "COMMIT_EDITMSG" "/.?TAGS" "^/sudo:"
+                                "/\\.emacs\\.d/games/*-scores" "/\\.emacs\\.d/\\.cask/")))
+  :config
+  (defvar recentf-auto-save-timer)
+  (setq recentf-auto-save-timer (run-with-idle-timer 30 t 'recentf-save-list))
+  :global-minor-mode recentf-mode)
