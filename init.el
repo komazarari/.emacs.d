@@ -132,3 +132,57 @@
   (defvar recentf-auto-save-timer)
   (setq recentf-auto-save-timer (run-with-idle-timer 30 t 'recentf-save-list))
   :global-minor-mode recentf-mode)
+
+(leaf vertico
+  :doc "VERTical Interactive COmpletion - enhanced minibuffer completion"
+  :ensure t
+  :custom ((vertico-count . 20)
+           (vertico-resize . t)
+           (vertico-cycle . t))
+  :global-minor-mode vertico-mode)
+
+(leaf orderless
+  :doc "Completion style for matching regexps in any order"
+  :ensure t
+  :custom ((completion-styles . '(orderless basic))
+           (completion-category-defaults . nil)
+           (completion-category-overrides . '((file (styles partial-completion))))))
+
+(leaf hippie-exp
+  :doc "expand text trying various ways to find its expansion"
+  :tag "builtin"
+  :bind (("M-/" . hippie-expand)
+         ("C-M-/" . hippie-expand-undo))
+  :custom ((hippie-expand-try-functions-list . '(try-complete-file-name-partially
+                                                  try-complete-file-name
+                                                  try-expand-dabbrev
+                                                  try-expand-dabbrev-all-buffers
+                                                  try-expand-dabbrev-from-kill)))
+  :config
+  (defun hippie-expand-undo ()
+    "Undo the expansion done by hippie-expand."
+    (interactive)
+    (undo)))
+
+;; marginalia:
+;; - marginalia-mode: 補完候補に詳細情報を表示するモードを有効化
+;; - M-A: 注釈の表示レベルを切り替え（詳細⇔簡潔⇔なし）
+;; - ミニバッファ内でもM-A: 補完中にも注釈レベルを変更可能
+;; Marginaliaで表示される情報例:
+;; - ファイル: サイズ、更新日時、パーミッション
+;; - バッファ: モード、サイズ、ファイルパス
+;; - コマンド: キーバインド、説明
+;; - 変数: 値、説明
+;; - 関数: 引数、説明
+;; テスト
+;; 1. M-x find-file - ファイル情報が右側に表示
+;; 2. C-x b (switch-to-buffer) - バッファ情報が表示
+;; 3. M-x - コマンドの説明とキーバインドが表示
+;; 4. 補完中にM-Aを押すと注釈レベルが変わります
+(leaf marginalia
+  :doc "Enrich existing commands with completion annotations"
+  :ensure t
+  :bind (("M-A" . marginalia-cycle)
+         (minibuffer-local-map
+          ("M-A" . marginalia-cycle)))
+  :global-minor-mode marginalia-mode)
