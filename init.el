@@ -215,6 +215,20 @@
           (when-let (project (project-current))
             (car (project-roots project))))))
 
+(leaf consult-ghq
+  :doc "Consult interface for ghq"
+  :ensure t
+  :after consult
+  :bind (("C-c g" . consult-ghq-find)
+         ("C-c G" . consult-ghq-switch-project))
+  :custom ((consult-ghq-find-function . #'find-file))
+  :config
+  ;; Add ghq source to consult-buffer (use correct source name)
+  (with-eval-after-load 'consult
+    (when (boundp 'consult-ghq--source)
+      ;; (add-to-list 'consult-buffer-sources 'consult-ghq--source 'append))))
+      (add-to-list 'consult-buffer-sources 'consult--source-ghq 'append))))
+
 (leaf keybindings
   :doc "Basic key bindings for improved productivity"
   :config
@@ -229,7 +243,8 @@
 
   ;; Text editing
   (global-set-key (kbd "C-c C-d") 'delete-pair)
-  (global-set-key (kbd "C-M-y") 'insert-register))
+  (global-set-key (kbd "C-M-y") 'insert-register)
+  )
 
 (leaf hs-minor-mode
   :doc "Hide/Show minor mode for code folding"
@@ -253,10 +268,10 @@
 (leaf multiple-cursors
   :doc "Multiple cursors for Emacs"
   :ensure t
-  :bind (;; VSCode-like keybindings
-         ("C-d" . mc/mark-next-like-this)
-         ("C-S-d" . mc/mark-previous-like-this)
-         ("C-M-d" . mc/mark-all-like-this)
+  :bind (;; Option-based keybindings (preserve C-d for delete-char)
+         ("M-s-d" . mc/mark-next-like-this)
+         ("M-s-S-d" . mc/mark-previous-like-this)
+         ("M-C-s-d" . mc/mark-all-like-this)
          ;; Line editing
          ("C-S-l" . mc/edit-lines)
          ;; Mouse support
@@ -266,3 +281,20 @@
          ("C-c m p" . mc/mark-previous-like-this)
          ("C-c m a" . mc/mark-all-like-this)
          ("C-c m l" . mc/edit-lines)))
+
+(leaf expand-region
+  :doc "Increase selected region by semantic units"
+  :ensure t
+  :bind (("C-=" . er/expand-region)
+         ("C-M-=" . er/contract-region)))
+
+(leaf comment-dwim-2
+  :doc "An all-in-one comment command to rule them all"
+  :ensure t
+  :bind (("M-;" . comment-dwim-2)))
+
+;; C-a, C-e で先頭, 末尾
+(leaf sequential-command
+  :config
+  (leaf sequential-command-config
+	:hook (emacs-startup-hook . sequential-command-setup-keys)))
