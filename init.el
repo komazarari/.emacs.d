@@ -75,7 +75,7 @@
   :custom ((set-mark-command-repeat-pop . t)
            (kill-ring-max . 100)
            (kill-read-only-ok . t)
-           (kill-whole-line . t)))
+           (kill-whole-line . nil)))
 
 (leaf autorevert
   :doc "revert buffers when files on disk change"
@@ -186,3 +186,83 @@
          (minibuffer-local-map
           ("M-A" . marginalia-cycle)))
   :global-minor-mode marginalia-mode)
+
+(leaf consult
+  :doc "Consulting completing-read"
+  :ensure t
+  :init
+  ;; Replace some built-in commands with consult alternatives
+  (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)
+  :bind (;; Navigation
+         ("M-g g" . consult-goto-line)
+         ("M-g M-g" . consult-goto-line)
+         ("M-g o" . consult-outline)
+         ("M-g i" . consult-imenu)
+         ("M-g I" . consult-imenu-multi)
+         ;; Search
+         ("C-s" . consult-line)
+         ("C-M-s" . consult-ripgrep)
+         ;; Buffer and file navigation
+         ("C-x b" . consult-buffer)
+         ;; History
+         ("M-y" . consult-yank-pop))
+  :config
+  ;; Configure project root detection
+  (setq consult-project-root-function
+        (lambda ()
+          (when-let (project (project-current))
+            (car (project-roots project))))))
+
+(leaf keybindings
+  :doc "Basic key bindings for improved productivity"
+  :config
+  ;; Window operations
+  (global-set-key (kbd "C-,") 'other-window)
+
+  ;; Buffer operations
+  (global-set-key (kbd "C-M-k") 'kill-buffer)
+
+  ;; Scrolling
+  (global-set-key (kbd "C-z") 'scroll-down)
+
+  ;; Text editing
+  (global-set-key (kbd "C-c C-d") 'delete-pair)
+  (global-set-key (kbd "C-M-y") 'insert-register))
+
+(leaf hs-minor-mode
+  :doc "Hide/Show minor mode for code folding"
+  :tag "builtin"
+  :bind (;; VSCode-like keybindings for macOS
+         ("M-s-[" . hs-hide-block)
+         ("M-s-]" . hs-show-block)
+         ;; Alternative keybindings for non-Mac or preference
+         ("C-c C-h" . hs-hide-block)
+         ("C-c C-s" . hs-show-block)
+         ("C-c C-M-h" . hs-hide-all)
+         ("C-c C-M-s" . hs-show-all))
+  :hook ((emacs-lisp-mode-hook . hs-minor-mode)
+         (lisp-mode-hook . hs-minor-mode)
+         (python-mode-hook . hs-minor-mode)
+         (javascript-mode-hook . hs-minor-mode)
+         (js-mode-hook . hs-minor-mode)
+         (c-mode-hook . hs-minor-mode)
+         (c++-mode-hook . hs-minor-mode)))
+
+(leaf multiple-cursors
+  :doc "Multiple cursors for Emacs"
+  :ensure t
+  :bind (;; VSCode-like keybindings
+         ("C-d" . mc/mark-next-like-this)
+         ("C-S-d" . mc/mark-previous-like-this)
+         ("C-M-d" . mc/mark-all-like-this)
+         ;; Line editing
+         ("C-S-l" . mc/edit-lines)
+         ;; Mouse support
+         ("M-<down-mouse-1>" . mc/add-cursor-on-click)
+         ;; Additional useful bindings
+         ("C-c m n" . mc/mark-next-like-this)
+         ("C-c m p" . mc/mark-previous-like-this)
+         ("C-c m a" . mc/mark-all-like-this)
+         ("C-c m l" . mc/edit-lines)))
