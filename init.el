@@ -44,7 +44,7 @@
             (init-file-debug . t)
             (frame-resize-pixelwise . t)
             (enable-recursive-minibuffers . t)
-            (history-length . 2000)
+            (history-length . 1800)
             (history-delete-duplicates . t)
             (scroll-preserve-screen-position . t)
             (scroll-conservatively . 100)
@@ -298,3 +298,90 @@
   :config
   (leaf sequential-command-config
 	:hook (emacs-startup-hook . sequential-command-setup-keys)))
+
+(leaf doom-themes
+  :doc "An opinionated pack of modern color-themes"
+  :ensure t
+  :custom ((doom-themes-enable-bold . t)
+           (doom-themes-enable-italic . t))
+  :config
+  ;; Load theme
+  (load-theme 'doom-one t)
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+  ;; Improve org-mode fontification
+  (doom-themes-org-config))
+
+(leaf all-the-icons
+  :doc "A library for inserting developer icons"
+  :ensure t
+  :config
+  ;; Run M-x all-the-icons-install-fonts after first installation
+  (unless (find-font (font-spec :name "all-the-icons"))
+    (message "Install fonts with: M-x all-the-icons-install-fonts")))
+
+(leaf font-settings
+  :doc "Font configuration for better readability"
+  :config
+  (when (eq system-type 'darwin)
+    ;; Font priority order for macOS
+    (cond
+     ;; First choice: UDEV Gothic 35NFLG (excellent for programming)
+     ((find-font (font-spec :name "UDEV Gothic 35NFLG"))
+      (set-face-attribute 'default nil :family "UDEV Gothic 35NFLG" :height 180))
+     ;; Second choice: SF Mono (macOS standard monospace)
+     ((find-font (font-spec :name "SF Mono"))
+      (set-face-attribute 'default nil :family "SF Mono" :height 180))
+     ;; Fallback options
+     ((find-font (font-spec :name "Monaco"))
+      (set-face-attribute 'default nil :family "Monaco" :height 180))
+     ((find-font (font-spec :name "Menlo"))
+      (set-face-attribute 'default nil :family "Menlo" :height 180))
+     ((find-font (font-spec :name "Consolas"))
+      (set-face-attribute 'default nil :family "Consolas" :height 180)))
+    
+    ;; Japanese font settings (UDEV Gothic handles Japanese well, but fallback)
+    (unless (find-font (font-spec :name "UDEV Gothic 35NFLG"))
+      (when (find-font (font-spec :name "Hiragino Kaku Gothic ProN"))
+        (set-fontset-font t 'japanese-jisx0208
+                          (font-spec :family "Hiragino Kaku Gothic ProN"))))
+    
+    ;; Font smoothing on macOS
+    (setq mac-allow-anti-aliasing t)))
+
+(leaf magit
+  :doc "A Git porcelain inside Emacs"
+  :ensure t
+  :bind (("C-x g" . magit-status)
+         ("C-x M-g" . magit-dispatch))
+  :custom ((magit-diff-refine-hunk . t)))
+
+(leaf git-gutter
+  :doc "Show git diff in gutter"
+  :ensure t
+  :custom ((git-gutter:modified-sign . "~")
+           (git-gutter:added-sign . "+")
+           (git-gutter:deleted-sign . "-"))
+  :global-minor-mode global-git-gutter-mode)
+
+(leaf dired-sidebar
+  :doc "Tree style file explorer sidebar"
+  :ensure t
+  :bind (("C-x C-n" . dired-sidebar-toggle-sidebar))
+  :custom ((dired-sidebar-subtree-line-prefix . "  ")
+           (dired-sidebar-theme . 'all-the-icons)
+           (dired-sidebar-use-term-integration . t)
+           (dired-sidebar-use-custom-font . t)))
+
+(leaf flycheck
+  :doc "On-the-fly syntax checking"
+  :ensure t
+  :bind (("M-n" . flycheck-next-error)
+         ("M-p" . flycheck-previous-error))
+  :global-minor-mode global-flycheck-mode)
+
+(leaf dmacro
+  :doc "Dynamic macro - repeat complex operations"
+  :ensure t
+  :bind (("C-S-e" . dmacro-exec))
+  :global-minor-mode global-dmacro-mode)
