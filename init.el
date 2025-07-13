@@ -207,7 +207,7 @@
          ("M-g i" . consult-imenu)
          ("M-g I" . consult-imenu-multi)
          ;; Search
-         ("C-s" . consult-line)
+;; ToDo         ;; ("C-s" . consult-line)
          ("C-M-s" . consult-ripgrep)
          ;; Buffer and file navigation
          ("C-x b" . consult-buffer)
@@ -304,18 +304,34 @@
   (leaf sequential-command-config
 	:hook (emacs-startup-hook . sequential-command-setup-keys)))
 
-(leaf doom-themes
-  :doc "An opinionated pack of modern color-themes"
+(leaf modus-themes
   :ensure t
-  :custom ((doom-themes-enable-bold . t)
-           (doom-themes-enable-italic . t))
+  :custom ((modus-themes-itaric-constructs . t)
+           (modus-themes-bold-constructs . nil)
+           (modus-themes-region . '(bg-only no-extend))
+           (modus-themes-subtle-line-numbers . nil)
+           (modus-themes-headings ; this is an alist: read the manual or its doc string
+            . '((1 . (overline background))
+                (2 . (rainbow overline))
+                (t . (no-bold)))
+            )
+           )
   :config
-  ;; Load theme
-  (load-theme 'doom-one t)
-  ;; Enable flashing mode-line on errors
-  (doom-themes-visual-bell-config)
-  ;; Improve org-mode fontification
-  (doom-themes-org-config))
+  (load-theme 'modus-vivendi-tinted)
+  )
+
+;; (leaf doom-themes
+;;   :doc "An opinionated pack of modern color-themes"
+;;   :ensure t
+;;   :custom ((doom-themes-enable-bold . t)
+;;            (doom-themes-enable-italic . t))
+;;   :config
+;;   ;; Load theme
+;;   (load-theme 'doom-one t)
+;;   ;; Enable flashing mode-line on errors
+;;   (doom-themes-visual-bell-config)
+;;   ;; Improve org-mode fontification
+;;   (doom-themes-org-config))
 
 (leaf all-the-icons
   :doc "A library for inserting developer icons"
