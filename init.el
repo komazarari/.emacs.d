@@ -1,4 +1,9 @@
-;;(require 'package)
+;;; init.el --- My init.el  -*- lexical-binding: t; -*-
+;;; Commentary:
+
+;; My init.el.
+
+;;; Code:
 (eval-and-compile
   (customize-set-variable
    'package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
@@ -368,10 +373,23 @@
   :doc "Tree style file explorer sidebar"
   :ensure t
   :bind (("C-x C-n" . dired-sidebar-toggle-sidebar))
-  :custom ((dired-sidebar-subtree-line-prefix . "  ")
+  :custom ((dired-sidebar-subtree-line-prefix . " ")
            (dired-sidebar-theme . 'all-the-icons)
            (dired-sidebar-use-term-integration . t)
-           (dired-sidebar-use-custom-font . t)))
+           (dired-sidebar-use-custom-font . t))
+  :config
+  (leaf all-the-icons-dired
+    :ensure t
+	:hook (dired-mode-hook . all-the-icons-dired-mode))
+  
+  ;; Auto-open dired-sidebar on startup (except for tmp directories)
+  (defun auto-open-dired-sidebar ()
+    "Open dired-sidebar automatically if not in tmp directory"
+    (when (and (not (string-match-p "tmp" default-directory))
+               (not (string-match-p "/tmp/" default-directory)))
+      (dired-sidebar-show-sidebar)))
+  
+  (add-hook 'emacs-startup-hook 'auto-open-dired-sidebar))
 
 (leaf flycheck
   :doc "On-the-fly syntax checking"
@@ -385,3 +403,6 @@
   :ensure t
   :bind (("C-S-e" . dmacro-exec))
   :global-minor-mode global-dmacro-mode)
+
+;; End:
+;;; init.el ends here
