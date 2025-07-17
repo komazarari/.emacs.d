@@ -72,7 +72,16 @@
   (global-display-line-numbers-mode)
   (setq-default indicate-empty-lines t)
   (setq-default indicate-buffer-boundaries 'left)
+  (set-language-environment 'utf-8)
   (keyboard-translate ?\C-h ?\C-?))
+
+(leaf ddskk
+  :ensure t
+  :custom ((skk-sticky-key . ";"))
+  :config
+  (setopt
+   default-input-method "japanese-skk")
+  )
 
 (leaf simple
   :doc "basic editing commands for Emacs - mark and kill ring settings"
@@ -309,7 +318,7 @@
   :custom ((modus-themes-itaric-constructs . t)
            (modus-themes-bold-constructs . nil)
            (modus-themes-region . '(bg-only no-extend))
-           (modus-themes-subtle-line-numbers . nil)
+           (modus-themes-subtle-line-numbers . t)
            (modus-themes-headings ; this is an alist: read the manual or its doc string
             . '((1 . (overline background))
                 (2 . (rainbow overline))
@@ -319,6 +328,24 @@
   :config
   (load-theme 'modus-vivendi-tinted)
   )
+
+;; (leaf telephone-line
+;;   :ensure t)
+
+;; (leaf doom-modeline
+;;   :ensure t
+;;   :init (doom-modeline-mode 1)
+;;   )
+
+(leaf moody
+  :ensure t
+  :config
+  (moody-replace-mode-line-front-space)
+  (moody-replace-mode-line-buffer-identification)
+  (moody-replace-vc-mode))
+
+(leaf nerd-icons
+  :ensure t)
 
 ;; (leaf doom-themes
 ;;   :doc "An opinionated pack of modern color-themes"
@@ -333,13 +360,13 @@
 ;;   ;; Improve org-mode fontification
 ;;   (doom-themes-org-config))
 
-(leaf all-the-icons
-  :doc "A library for inserting developer icons"
-  :ensure t
-  :config
-  ;; Run M-x all-the-icons-install-fonts after first installation
-  (unless (find-font (font-spec :name "all-the-icons"))
-    (message "Install fonts with: M-x all-the-icons-install-fonts")))
+;; (leaf all-the-icons
+;;   :doc "A library for inserting developer icons"
+;;   :ensure t
+;;   :config
+;;   ;; Run M-x all-the-icons-install-fonts after first installation
+;;   (unless (find-font (font-spec :name "all-the-icons"))
+;;     (message "Install fonts with: M-x all-the-icons-install-fonts")))
 
 (leaf font-settings
   :doc "Font configuration for better readability"
@@ -368,7 +395,11 @@
                           (font-spec :family "Hiragino Kaku Gothic ProN"))))
     
     ;; Font smoothing on macOS
-    (setq mac-allow-anti-aliasing t)))
+    (setq mac-allow-anti-aliasing t)
+
+    ;; Spacing
+    (setopt line-spacing 0.2)
+    ))
 
 (leaf magit
   :doc "A Git porcelain inside Emacs"
@@ -390,7 +421,8 @@
   :ensure t
   :bind (("C-x C-n" . dired-sidebar-toggle-sidebar))
   :custom ((dired-sidebar-subtree-line-prefix . " ")
-           (dired-sidebar-theme . 'all-the-icons)
+           ;; (dired-sidebar-theme . 'all-the-icons)
+           (dired-sidebar-theme . 'nerd-icons)
            (dired-sidebar-use-term-integration . t)
            (dired-sidebar-use-custom-font . t))
   :config
@@ -420,5 +452,16 @@
   :bind (("C-S-e" . dmacro-exec))
   :global-minor-mode global-dmacro-mode)
 
+(leaf markdown-mode
+  :doc "Major mode for markdown"
+  :ensure t
+  :mode ("\\.md\\'" . gfm-mode)
+  :config
+  (setopt
+   markdown-header-scaling t
+   markdown-fontify-code-blocks-natively  t)
+  )
+
 ;; End:
 ;;; init.el ends here
+(put 'dired-find-alternate-file 'disabled nil)
