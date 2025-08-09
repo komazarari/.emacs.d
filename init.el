@@ -81,7 +81,10 @@
   :config
   (setopt
    default-input-method "japanese-skk")
-  )
+  ;; 変換モード中のC-mを変換確定のみにする（改行させない）
+  (setq skk-egg-like-newline t)
+  ;; 確定後に自動的に改行しない設定
+  (setq skk-auto-insert-paren nil))
 
 (leaf simple
   :doc "basic editing commands for Emacs - mark and kill ring settings"
@@ -93,6 +96,9 @@
 
 (leaf autorevert
   :doc "revert buffers when files on disk change"
+  :custom ((auto-revert-avoid-polling . t)
+           (auto-revert-use-notify . t)
+           (auto-revert-verbose . nil))
   :global-minor-mode global-auto-revert-mode)
 
 (leaf del-selection
@@ -216,8 +222,8 @@
          ("M-g i" . consult-imenu)
          ("M-g I" . consult-imenu-multi)
          ;; Search
-;; ToDo         ;; ("C-s" . consult-line)
-         ("C-M-s" . consult-ripgrep)
+         ;; ("C-s" . consult-line)
+         ;;         ("C-M-s" . consult-ripgrep)
          ;; Buffer and file navigation
          ("C-x b" . consult-buffer)
          ;; History
@@ -258,6 +264,24 @@
   ;; Text editing
   (global-set-key (kbd "C-c C-d") 'delete-pair)
   (global-set-key (kbd "C-M-y") 'insert-register)
+  )
+
+(leaf extend-prefixed-keybindings
+  :doc "C-u prefixed commands"
+  :config
+  (defun my/prefixed-dual-command (cmd prefixed-cmd)
+    "Return a command switched by C-u prefix exists or not"
+    (lambda ()
+      (interactive)
+      (if current-prefix-arg
+          (progn
+            (setq current-prefix-arg nil)
+            (call-interactively prefixed-cmd))
+        (call-interactively cmd)))
+    )
+  (global-set-key (kbd "C-x C-f") (my/prefixed-dual-command 'find-file 'consult-find))
+  (global-set-key (kbd "C-s") (my/prefixed-dual-command 'isearch-forward 'consult-line))
+  (global-set-key (kbd "C-M-g") (my/prefixed-dual-command 'consult-ripgrep 'consult-git-grep))
   )
 
 (leaf hs-minor-mode
@@ -401,6 +425,16 @@
     (setopt line-spacing 0.2)
     ))
 
+(leaf custom-resize-frame
+  :preface
+  (defun custom-resize-frame ()
+    (interactive)
+    (set-frame-size (selected-frame) 200 80)
+    (set-frame-position (selected-frame) 800 100)
+    )
+  :bind (("C-c C-l" . 'custom-resize-frame))
+  )
+
 (leaf magit
   :doc "A Git porcelain inside Emacs"
   :ensure t
@@ -452,6 +486,9 @@
   :bind (("C-S-e" . dmacro-exec))
   :global-minor-mode global-dmacro-mode)
 
+
+;; Language modes
+
 (leaf markdown-mode
   :doc "Major mode for markdown"
   :ensure t
@@ -462,6 +499,117 @@
    markdown-fontify-code-blocks-natively  t)
   )
 
+(leaf yaml-mode
+  :doc "Major mode for YAML"
+  :ensure t
+  :mode (("\\.yml\\'" . yaml-mode)
+         ("\\.yaml\\'" . yaml-mode))
+  :hook (yaml-mode-hook . lsp-deferred))
+
+(leaf lsp-mode
+  :doc "Language Server Protocol support"
+  :ensure t
+  :init
+  (setq lsp-keymap-prefix "C-c l")
+  :hook ((yaml-mode-hook . lsp-deferred)
+         (lsp-mode-hook . lsp-enable-which-key-integration))
+  :commands (lsp lsp-deferred)
+  :custom ((lsp-prefer-flymake . nil)
+           (lsp-auto-guess-root . t)
+           (lsp-keep-workspace-alive . nil)
+           (lsp-eldoc-enable-hover . t)
+           (lsp-signature-auto-activate . t)
+           ;; Disable automatic server installation
+           (lsp-auto-install-server . nil)
+           ;; File watching optimization
+           (lsp-enable-file-watchers . t)
+           (lsp-file-watch-threshold . 2000)
+           (lsp-file-watch-ignored-directories . '("[/\\\\]\\.git$" "[/\\\\]\\.hg$" "[/\\\\]\\.bzr$" "[/\\\\]_darcs$" "[/\\\\]\\.svn$" "[/\\\\]_FOSSIL_$" "[/\\\\]\\.idea$" "[/\\\\]\\.ensime_cache$" "[/\\\\]\\.eunit$" "[/\\\\]node_modules" "[/\\\\]\\.fslckout$" "[/\\\\]\\.tox$" "[/\\\\]\\.stack-work$" "[/\\\\]\\.bloop$" "[/\\\\]\\.metals$" "[/\\\\]target$" "[/\\\\]\\.ccls-cache$" "[/\\\\]\\.vscode$" "[/\\\\]\\.backup$" "[/\\\\]\\.swift-index$")))
+  :config
+  ;; Configure YAML language server (uses PATH from exec-path-from-shell)
+  (with-eval-after-load 'lsp-yaml
+    (when-let ((yaml-server-path (executable-find "yaml-language-server")))
+      (setq lsp-yaml-server-command (list yaml-server-path "--stdio")))))
+
+(leaf exec-path-from-shell
+  :doc "Make Emacs use the shell's PATH"
+  :ensure t
+  :if (memq window-system '(mac ns x))
+  :config
+  (setq exec-path-from-shell-variables '("PATH" "MANPATH" "GOPATH" "GOROOT" "MISE_DATA_DIR"))
+  (setq exec-path-from-shell-check-startup-files nil)
+  ;; Initialize shell environment (includes mise PATH automatically)
+  (exec-path-from-shell-initialize))
+
+(leaf lsp-ui
+  :doc "UI modules for lsp-mode"
+  :ensure t
+  :after lsp-mode
+  :commands lsp-ui-mode
+  :custom ((lsp-ui-doc-enable . t)
+           (lsp-ui-doc-position . 'bottom)
+           (lsp-ui-doc-max-width . 120)
+           (lsp-ui-doc-max-height . 30)
+           (lsp-ui-doc-show-with-cursor . t)  ;; カーソル位置で自動表示
+           (lsp-ui-doc-delay . 0.5)           ;; 表示までの遅延(秒)
+           (lsp-ui-sideline-enable . t)
+           (lsp-ui-sideline-ignore-duplicate . t)
+           (lsp-ui-sideline-show-hover . t)   ;; ホバー情報を表示
+           (lsp-ui-peek-enable . t)
+           (lsp-ui-peek-peek-height . 20)
+           (lsp-ui-peek-list-width . 50)
+           (lsp-ui-peek-always-show . t))     ;; 常にピークを表示
+  :config
+  ;; キーバインドを設定（lsp-ui読み込み後）
+  ;; lsp-ui-imenuの代わりにconsult-imenuを使用（より安定）
+  (define-key lsp-ui-mode-map (kbd "C-c u") 'consult-imenu)
+  ;; デフォルトの定義・参照検索をlsp-ui-peekに置き換え
+  (define-key lsp-ui-mode-map [remap xref-find-definitions] 'lsp-ui-peek-find-definitions)
+  (define-key lsp-ui-mode-map [remap xref-find-references] 'lsp-ui-peek-find-references)
+  
+  ;; lsp-ui-imenu のエラー対策（バックアップとして）
+  (with-eval-after-load 'lsp-ui-imenu
+    ;; 大きなファイルでのimenuを制限
+    (setq lsp-ui-imenu-auto-refresh nil)
+    ;; エラー回避のためのフィルタリング設定
+    (setq lsp-ui-imenu-kind-position 'left)))
+
+;; File notification error handling
+(leaf file-notify-error-handling
+  :doc "Handle file notification errors gracefully"
+  :config
+  ;; Add error handling for file-notify issues
+  (defun safe-file-notify-handle-event (event)
+    "Safely handle file notify events with error recovery"
+    (condition-case err
+        (file-notify-handle-event event)
+      (error
+       (message "File notify error: %s" err)
+       ;; Try to clean up broken watchers
+       (when (boundp 'file-notify-descriptors)
+         (maphash (lambda (desc watch)
+                    (when (and watch (null (file-notify--watch-callback watch)))
+                      (file-notify-rm-watch desc)))
+                  file-notify-descriptors)))))
+  
+  ;; Replace the default handler
+  (advice-add 'file-notify-handle-event :around
+              (lambda (orig-fun &rest args)
+                (condition-case err
+                    (apply orig-fun args)
+                  (void-function
+                   (message "Void function in file-notify, cleaning up...")
+                   ;; Clean up broken watchers
+                   (when (boundp 'file-notify-descriptors)
+                     (maphash (lambda (desc watch)
+                                (when (and watch (null (file-notify--watch-callback watch)))
+                                  (ignore-errors (file-notify-rm-watch desc))))
+                              file-notify-descriptors)))
+                  (error
+                   (message "File notify error: %s" err))))))
+
 ;; End:
 ;;; init.el ends here
 (put 'dired-find-alternate-file 'disabled nil)
+
+(put 'downcase-region 'disabled nil)
