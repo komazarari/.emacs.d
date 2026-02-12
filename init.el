@@ -73,18 +73,30 @@
   (setq-default indicate-empty-lines t)
   (setq-default indicate-buffer-boundaries 'left)
   (set-language-environment 'utf-8)
-  (keyboard-translate ?\C-h ?\C-?))
+  (keyboard-translate ?\C-h ?\C-?)
+  (set-frame-parameter nil 'alpha 88)
+  )
 
 (leaf ddskk
   :ensure t
   :custom ((skk-sticky-key . ";"))
   :config
   (setopt
-   default-input-method "japanese-skk")
-  ;; 変換モード中のC-mを変換確定のみにする（改行させない）
-  (setq skk-egg-like-newline t)
-  ;; 確定後に自動的に改行しない設定
-  (setq skk-auto-insert-paren nil))
+   default-input-method "japanese-skk"
+   skk-server-host "localhost"
+   skk-jisyo-code 'utf-8
+   skk-jisyo "~/.skk-jisyo.utf8"
+   skk-server-portnum 1178
+   ;; 変換モード中のC-mを変換確定のみにする（改行させない）
+   skk-egg-like-newline t
+   ;; 確定後に自動的に改行しない設定
+   skk-auto-insert-paren nil
+   ;; 競合防止で都度読むらしい
+   skk-share-private-jisyo t
+   ;; 変換モード中のC-mを変換確定のみにする（改行させない）
+   skk-egg-like-newline t
+   )
+  )
 
 (leaf simple
   :doc "basic editing commands for Emacs - mark and kill ring settings"
@@ -112,6 +124,9 @@
 (leaf paren
   :doc "highlight matching paren"
   :global-minor-mode show-paren-mode)
+
+(leaf whitespace-mode
+  :custom (whitespace-line-column . 140))
 
 (leaf which-key
   :doc "Display available keybindings in popup"
@@ -505,6 +520,14 @@
   :mode (("\\.yml\\'" . yaml-mode)
          ("\\.yaml\\'" . yaml-mode))
   :hook (yaml-mode-hook . lsp-deferred))
+
+(leaf dockerfile-mode
+  :doc "Major mode for Dockerfile"
+  :ensure t)
+
+;; (leaf php-mode
+;;   :doc "Major mode for PHP"
+;;   :hook (php-mode-hook . lsp-deferred))
 
 (leaf lsp-mode
   :doc "Language Server Protocol support"
