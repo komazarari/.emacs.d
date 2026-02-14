@@ -412,21 +412,22 @@
   :doc "Font configuration for better readability"
   :config
   (when (eq system-type 'darwin)
-    ;; Font priority order for macOS
-    (cond
-     ;; First choice: UDEV Gothic 35NFLG (excellent for programming)
-     ((find-font (font-spec :name "UDEV Gothic 35NFLG"))
-      (set-face-attribute 'default nil :family "UDEV Gothic 35NFLG" :height 180))
-     ;; Second choice: SF Mono (macOS standard monospace)
-     ((find-font (font-spec :name "SF Mono"))
-      (set-face-attribute 'default nil :family "SF Mono" :height 180))
-     ;; Fallback options
-     ((find-font (font-spec :name "Monaco"))
-      (set-face-attribute 'default nil :family "Monaco" :height 180))
-     ((find-font (font-spec :name "Menlo"))
-      (set-face-attribute 'default nil :family "Menlo" :height 180))
-     ((find-font (font-spec :name "Consolas"))
-      (set-face-attribute 'default nil :family "Consolas" :height 180)))
+    ;; 外部モニタとMacBook内蔵でフォントサイズを切り替え
+    (let ((font-height (if (> (display-pixel-width) 1800) 180 150)))
+      (cond
+       ;; First choice: UDEV Gothic 35NFLG (excellent for programming)
+       ((find-font (font-spec :name "UDEV Gothic 35NFLG"))
+        (set-face-attribute 'default nil :family "UDEV Gothic 35NFLG" :height font-height))
+       ;; Second choice: SF Mono (macOS standard monospace)
+       ((find-font (font-spec :name "SF Mono"))
+        (set-face-attribute 'default nil :family "SF Mono" :height font-height))
+       ;; Fallback options
+       ((find-font (font-spec :name "Monaco"))
+        (set-face-attribute 'default nil :family "Monaco" :height font-height))
+       ((find-font (font-spec :name "Menlo"))
+        (set-face-attribute 'default nil :family "Menlo" :height font-height))
+       ((find-font (font-spec :name "Consolas"))
+        (set-face-attribute 'default nil :family "Consolas" :height font-height))))
     
     ;; Japanese font settings (UDEV Gothic handles Japanese well, but fallback)
     (unless (find-font (font-spec :name "UDEV Gothic 35NFLG"))
@@ -444,10 +445,15 @@
 (leaf custom-resize-frame
   :preface
   (defun custom-resize-frame ()
+    "外部モニタとMacBook内蔵ディスプレイでサイズを切り替える。"
     (interactive)
-    (set-frame-size (selected-frame) 200 80)
-    (set-frame-position (selected-frame) 800 100)
-    )
+    (let* ((external-p (> (display-pixel-width) 1800))
+           (cols (if external-p 200 120))
+           (rows (if external-p 80 50))
+           (x    (if external-p 800 100))
+           (y    (if external-p 100 0)))
+      (set-frame-size (selected-frame) cols rows)
+      (set-frame-position (selected-frame) x y)))
   :bind (("C-c C-l" . 'custom-resize-frame))
   )
 
