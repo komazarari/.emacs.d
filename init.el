@@ -348,6 +348,7 @@
 
 ;; C-a, C-e で先頭, 末尾
 (leaf sequential-command
+  :ensure t
   :config
   (leaf sequential-command-config
 	:hook (emacs-startup-hook . sequential-command-setup-keys)))
