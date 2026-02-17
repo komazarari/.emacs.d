@@ -457,6 +457,20 @@
   :bind (("C-c C-l" . 'custom-resize-frame))
   )
 
+(leaf vterm
+  :ensure t
+  )
+
+(leaf copilot
+  :doc "GitHub Copilot integration"
+  :ensure t
+  :hook (prog-mode-hook . copilot-mode)
+  :bind (:copilot-completion-map
+         ("TAB" . copilot-accept-completion)
+         ("C-TAB" . copilot-accept-completion-by-word)
+         ("C-n" . copilot-next-completion)
+         ("C-p" . copilot-previous-completion)))
+
 (leaf magit
   :doc "A Git porcelain inside Emacs"
   :ensure t
