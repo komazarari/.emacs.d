@@ -550,6 +550,12 @@
 ;;   :doc "Major mode for PHP"
 ;;   :hook (php-mode-hook . lsp-deferred))
 
+(leaf terraform-mode
+  :doc "Major mode for terraform HCL"
+  :ensure t
+  :hook (terraform-mode-hook . terraform-format-on-save-mode)
+  )
+
 (leaf lsp-mode
   :doc "Language Server Protocol support"
   :ensure t
