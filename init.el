@@ -542,6 +542,9 @@
          ("\\.yaml\\'" . yaml-mode))
   :hook (yaml-mode-hook . lsp-deferred))
 
+(leaf json-js-mode
+  :custom (js-indent-level . 2))
+
 (leaf dockerfile-mode
   :doc "Major mode for Dockerfile"
   :ensure t)
