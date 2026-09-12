@@ -559,12 +559,24 @@
   :hook (terraform-mode-hook . terraform-format-on-save-mode)
   )
 
+(leaf treesit
+  :doc "Tree-sitter based major modes (Emacs 31+)"
+  :if (treesit-available-p)
+  :require t
+  ;; Enumerate the modes instead of t: t remaps every ts-mode known to
+  ;; `treesit-major-mode-remap-alist' at once, which would move the major mode
+  ;; out from under hooks written against the non-ts modes.
+  :custom ((treesit-font-lock-level . 4)
+           (treesit-enabled-modes . '(typescript-ts-mode tsx-ts-mode))))
+
 (leaf lsp-mode
   :doc "Language Server Protocol support"
   :ensure t
   :init
   (setq lsp-keymap-prefix "C-c l")
   :hook ((yaml-mode-hook . lsp-deferred)
+         (typescript-ts-mode-hook . lsp-deferred)
+         (tsx-ts-mode-hook . lsp-deferred)
          (lsp-mode-hook . lsp-enable-which-key-integration))
   :commands (lsp lsp-deferred)
   :custom ((lsp-prefer-flymake . nil)
@@ -574,6 +586,10 @@
            (lsp-signature-auto-activate . t)
            ;; Disable automatic server installation
            (lsp-auto-install-server . nil)
+           ;; TypeScript 7 ships no tsserver.js, so the tsserver-wrapping
+           ;; `ts-ls' client cannot start; the compiler serves LSP itself.
+           (lsp-disabled-clients . '(ts-ls))
+           (lsp-clients-tsgo-path . "tsc")
            ;; File watching optimization
            (lsp-enable-file-watchers . t)
            (lsp-file-watch-threshold . 2000)
