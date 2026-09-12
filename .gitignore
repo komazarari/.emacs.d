@@ -2,3 +2,26 @@
 elpa/
 melpa/
 auto-save-list/
+
+# Byte/native compilation output
+*.elc
+*.eln
+eln-cache/
+
+# Package and language-server caches
+.cache/
+lsp-cache/
+.lsp-session-v1
+tree-sitter/
+
+# Backups and auto-saves (see `files' leaf block in init.el)
+backup/
+
+# Per-machine session state
+recentf
+history
+ido.last
+projects
+transient/
+tramp
+.mc-lists.el
